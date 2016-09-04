@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paper.js Draw</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        button.active {
+            border: 1px solid black;
+        }
+    </style>
+    <script src="paper-full.js"></script>
+</head>
+<body>
+
+<canvas width="800" height="600"></canvas>
+
+<div>
+    <button data-kind="90" class="active">90deg</button>
+    <button data-kind="45">45deg</button>
+
+    <div style="margin-top: 10px;">ESC for end drawing</div>
+</div>
+
+<script>
+
+    function getMousePosition(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    }
+
+    (function () {
+
+        var canvas = document.querySelector('canvas');
+        var context = canvas.getContext('2d');
+
+        paper.setup(canvas);
+
+
+        var buttons = Array.prototype.slice.call(document.querySelectorAll('button'));
+        var currentButton = buttons[0];
+        var activeButton = '90';
+
+        buttons.forEach(function (button) {
+
+            button.addEventListener('click', function (e) {
+
+                e.preventDefault();
+
+                if (currentButton) {
+                    currentButton.classList.remove('active');
+                }
+
+                button.classList.add('active');
+
+                activeButton = button.getAttribute('data-kind');
+
+                currentButton = button;
+
+            }, false);
+        });
+
+        var isDrawing = false;
+        var lastClickPoint;
+        var path;
+
+        canvas.addEventListener('click', function (e) {
+
+            if (!path) {
+                path = new paper.Path();
+                path.strokeColor = 'red';
+            }
+
+            lastClickPoint = getMousePosition(canvas, e);
+
+            var fromPoint = new paper.Point(lastClickPoint.x, lastClickPoint.y);
+            var toPoint = new paper.Point(lastClickPoint.x, lastClickPoint.y);
+
+            path.moveTo(fromPoint);
+            path.lineTo(toPoint);
+            path.lineTo(toPoint);
+            path.strokeColor = 'black';
+
+            var circle = new paper.Shape.Circle(new paper.Point(lastClickPoint.x, lastClickPoint.y), 3);
+            circle.strokeColor = 'red';
+
+            if (!isDrawing) {
+
+                isDrawing = true;
+                var onMouseMove;
+
+                if (activeButton === '45') {
+
+                    onMouseMove = function (e) {
+
+                        var movePosition = getMousePosition(canvas, e);
+                        var len = path.getSegments().length;
+
+                        path.removeSegment(len - 1);
+                        path.removeSegment(len - 2);
+
+                        var edgeWidth;
+
+
+                        var dy = Math.abs(movePosition.y - lastClickPoint.y);
+                        var dx = Math.abs(movePosition.x - lastClickPoint.x);
+
+                        console.log('dx=' + dx + ' dy=' + dy);
+
+                        if (dx < dy) {
+
+                            if (movePosition.y < lastClickPoint.y) {
+                                edgeWidth = Math.abs(movePosition.x - lastClickPoint.x);
+                            } else {
+                                edgeWidth = -Math.abs(movePosition.x - lastClickPoint.x);
+                            }
+
+                            path.lineTo(new paper.Point(lastClickPoint.x, movePosition.y + edgeWidth));
+                            path.lineTo(new paper.Point(movePosition.x, movePosition.y));
+
+                        } else {
+
+                            if (movePosition.x > lastClickPoint.x) {
+                                edgeWidth = Math.abs(movePosition.y - lastClickPoint.y);
+                            } else {
+                                edgeWidth = -Math.abs(movePosition.y - lastClickPoint.y);
+                            }
+
+                            path.lineTo(new paper.Point(movePosition.x - edgeWidth, lastClickPoint.y));
+                            path.lineTo(new paper.Point(movePosition.x, movePosition.y));
+                        }
+
+                    }
+                } else {
+                    onMouseMove = function (e) {
+
+                        var movePosition = getMousePosition(canvas, e);
+                        var len = path.getSegments().length;
+
+                        path.removeSegment(len - 1);
+                        path.removeSegment(len - 2);
+
+                        path.lineTo(new paper.Point(movePosition.x, lastClickPoint.y));
+                        path.lineTo(new paper.Point(movePosition.x, movePosition.y));
+                    }
+                }
+
+                canvas.addEventListener('mousemove', onMouseMove, false);
+
+                document.addEventListener('keydown', function onKeyDown(e) {
+
+                    if (e.keyCode === 27) {
+
+                        canvas.removeEventListener('mousemove', onMouseMove);
+                        canvas.removeEventListener('keydown', onKeyDown);
+
+                        isDrawing = false;
+
+                        path = null;
+                    }
+
+                }, false);
+            }
+
+        }, false);
+
+    })()
+
+</script>
+
+</body>
+</html>
