@@ -3,7 +3,7 @@
   "short_name": "WE",
   "theme_color": "#2196f3",
   "background_color": "rgba(65,160,236,0.69)",
-  "display": "fullscreen",
+  "display": "standalone",
   "Scope": "/",
   "start_url": "/?src=webapp",
   "icons": [
