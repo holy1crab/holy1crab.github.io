@@ -5,7 +5,7 @@
   "background_color": "rgba(65,160,236,0.69)",
   "display": "standalone",
   "Scope": "/",
-  "start_url": "/?src=webapp",
+  "start_url": "/pwa/?src=webapp",
   "icons": [
     {
       "src": "images/icons/icon-72x72.png",
